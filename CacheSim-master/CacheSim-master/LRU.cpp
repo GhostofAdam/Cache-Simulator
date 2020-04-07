@@ -5,28 +5,14 @@ using namespace std;
 void LruHitProcess() // if the replacement policy is LRU,and hit
 {
     if(t_assoc == full_associative)
-    {
-        for(i=0; i<i_num_line; i++)
-        {
-            if(LRU_priority[i]<LRU_priority[current_line] && cache_item[current_line][30]==true)
-            {
-                LRU_priority[i]++; // 如果该行比正在访问的行计数器值小，并且该行中hit为true
-            }
-        }
-
-        LRU_priority[current_line] = 0;
+    {   
+        LRU_stack[0]->pop(current_line);
+        LRU_stack[0]->push(current_line);
     }
     else if(t_assoc == set_associative)
     {
-        for(i=(current_set*i_cache_set); i<((current_set+1)*i_cache_set); i++)
-        {
-            if(LRU_priority[i]<LRU_priority[current_line] && cache_item[current_line][30]==true)
-            {
-                LRU_priority[i]++; // 如果该行比正在访问的行计数器值小，并且该行中hit为true
-            }
-        }
-
-        LRU_priority[current_line] = 0;
+        LRU_stack[current_set]->pop(current_line);
+        LRU_stack[current_set]->push(current_line);
     }
 }
 
@@ -34,27 +20,12 @@ void LruUnhitSpace() // if the replacement policy is LRU,and not hit,but there h
 {
     if(t_assoc == full_associative)
     {
-        for(i=0; i<i_num_line; i++)
-        {
-            if(cache_item[current_line][30]==true)
-            {
-                LRU_priority[i]++; // 如果该行该行中hit为true
-            }
-        }
-
-        LRU_priority[current_line] = 0;
+        LRU_stack[0]->push(current_line);
     }
     else if(t_assoc == set_associative)
     {
-        for(i=(current_set*i_cache_set); i<((current_set+1)*i_cache_set); i++)
-        {
-            if(cache_item[current_line][30]==true)
-            {
-                LRU_priority[i]++; // 如果该行该行中hit为true
-            }
-        }
+        LRU_stack[current_set]->push(current_line);
 
-        LRU_priority[current_line] = 0;
     }
 }
 
@@ -62,34 +33,16 @@ void LruUnhitUnspace()
 {
     if(t_assoc == full_associative)
     {
-        temp = LRU_priority[0];
-
-        for(i=0; i<i_num_line; i++)
-        {
-            if(LRU_priority[i]>=temp)
-            {
-                temp = LRU_priority[i];
-                j = i;
-            }
-        }
+        unsigned long int j = LRU_stack[0]->push(current_line);
 
         current_line = j;
     }
 
     if(t_assoc == set_associative)
     {
-        temp = LRU_priority[current_set*i_cache_set];
+        unsigned long int j = LRU_stack[current_set]->push(current_line);
 
-        for(i=(current_set*i_cache_set); i<((current_set+1)*i_cache_set); i++)
-        {
-            if(LRU_priority[i]>=temp)
-            {
-                temp = LRU_priority[i];
-                j = i;
-            }
-        }
-
-        current_line = j;
+        current_line = j + current_set*i_cache_set;
     }
 }
 

@@ -36,5 +36,15 @@ InitVariables.o: base.h
 LRU.o: base.h
 	$(CC) -c LRU.cpp -Wall
 
+PseudoLRU.o: PseudoLRU.h
+	$(CC) -c PseudoLRU.cpp -Wall
+
 PrintOutput.o: base.h
 	$(CC) -c PrintOutput.cpp -Wall
+
+_bitset.o: _bitset.h
+	$(CC) -c _bitset.cpp -Wall
+
+LRUStack.o: LRUStack.h _bitset.h
+	$(CC) -c LRUStack.cpp -Wall
+

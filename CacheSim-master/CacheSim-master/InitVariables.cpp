@@ -4,7 +4,7 @@ void InitVariables(void)
 {
     for(i=0; i<i_num_line; i++)
     {
-        cache_item[i].reset(); // [31]:valid,[30]:hit,[29]:dirty,[28]-[0]:data
+        cache_item[i]->clear(); // [31]:valid,[30]:hit,[29]:dirty,[28]-[0]:data
 
         if(t_replace == LRU)
         {

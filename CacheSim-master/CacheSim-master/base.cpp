@@ -43,8 +43,9 @@ float f_load_rate = 0.0; //Cache hit rate for loads
 float f_store_rate = 0.0; //Cache hit rate for stores
 /******************************************/
 
-std::bitset<64> cache_item[MAX_CACHE_LINE]; // [63]:valid,[62]:hit,[61]:dirty,[60]-[0]:data
-unsigned long int LRU_priority[MAX_CACHE_LINE]; //For LRU policy's priority
+_bitset** cache_item; // [63]:valid,[62]:hit,[61]:dirty,[60]-[0]:data
+LRUStack** LRU_stack; //For LRU policy's priority
+_bitset** pseudo_LRU_flag;//For Preudo LRU
 unsigned long int current_line = 0; // The line num which is processing
 unsigned long int current_set = 0; // The set num which is processing
 unsigned long int i=0,j=0; //For loop
@@ -109,6 +110,9 @@ bool GetHitNum(char *address)
         {
             LruHitProcess();
         }
+        else if(t_replace == PseudoLRU){
+            PseudoLruHitProcess();
+        }
     }
     else if(hit && is_store) // 命中，写操作
     {
@@ -121,11 +125,14 @@ bool GetHitNum(char *address)
         cout << "Hit" << endl;
         cout << "Write to Cache" << endl;
 #endif // NDEBUG
-        cache_item[current_line][61] = true; //设置dirty为true
+        cache_item[current_line]->set(p_dirty,true); //设置dirty为true
 
         if(t_replace == LRU)
         {
             LruHitProcess();
+        }
+         else if(t_replace == PseudoLRU){
+            PseudoLruHitProcess();
         }
     }
     else if((!hit) && is_load) // 没命中，读操作
@@ -145,6 +152,9 @@ bool GetHitNum(char *address)
         {
             LruUnhitSpace();
         }
+        else if(t_replace == PseudoLRU){
+            PseudoLruUnhitSpace();
+        }
     }
     else if((!hit) && is_store) // 没命中，写操作
     {
@@ -158,11 +168,14 @@ bool GetHitNum(char *address)
 #ifndef NDEBUG
         cout << "Write to Cache" << endl;
 #endif // NDEBUG
-        cache_item[current_line][61] = true; //设置dirty为true
+        cache_item[current_line]->set(p_dirty,true); //设置dirty为true
 
         if(t_replace == LRU)
         {
             LruUnhitSpace();
+        }
+        else if(t_replace == PseudoLRU){
+            PseudoLruUnhitSpace();
         }
     }
     else if(is_space)
@@ -199,15 +212,15 @@ bool IsHit(bitset<64> flags)
         }
 
         current_line = flags_line.to_ulong();
-        assert(cache_item[current_line][63] == true);
+        assert(cache_item[current_line]->test(p_valid)==true);
 
-        if(cache_item[current_line][62]==true) //判断hit位是否为真
+        if(cache_item[current_line]->test(p_hit)==true) //判断hit位是否为真
         {
             ret = true;
 
-            for(i=63,j=60; i>(63ul-bit_tag); i--,j--) //判断标记是否相同,i:address,j:cache
+            for(i=63,j=bit_tag-1; i>(63ul-bit_tag); i--,j--) //判断标记是否相同,i:address,j:cache
             {
-                if(flags[i] != cache_item[current_line][j])
+                if(flags[i] != cache_item[current_line]->test(j))
                 {
                     ret = false;
                     break;
@@ -219,13 +232,13 @@ bool IsHit(bitset<64> flags)
     {
         for(temp=0; temp<i_num_line; temp++)
         {
-            if(cache_item[temp][62]==true) //判断hit位是否为真
+            if(cache_item[temp]->test(p_hit)==true) //判断hit位是否为真
             {
                 ret = true;
 
-                for(i=63,j=60; i>(63ul-bit_tag); i--,j--) //判断标记是否相同,i:address,j:cache
+                for(i=63,j=bit_tag-1; i>(63ul-bit_tag); i--,j--) //判断标记是否相同,i:address,j:cache
                 {
-                    if(flags[i] != cache_item[temp][j])
+                    if(flags[i] != cache_item[temp]->test(j))
                     {
                         ret = false;
                         break;
@@ -253,13 +266,13 @@ bool IsHit(bitset<64> flags)
 
         for(temp=(current_set*i_cache_set); temp<((current_set+1)*i_cache_set); temp++)
         {
-            if(cache_item[temp][62]==true) //判断hit位是否为真
+            if(cache_item[temp]->test(p_hit)==true) //判断hit位是否为真
             {
                 ret = true;
 
-                for(i=63,j=60; i>(63ul-bit_tag); i--,j--) //判断标记是否相同,i:address,j:cache
+                for(i=63,j=bit_tag-1; i>(63ul-bit_tag); i--,j--) //判断标记是否相同,i:address,j:cache
                 {
-                    if(flags[i] != cache_item[temp][j])
+                    if(flags[i] != cache_item[temp]->test(j))
                     {
                         ret = false;
                         break;
@@ -282,19 +295,19 @@ void GetRead(bitset<64> flags)
 {
     if(t_assoc == direct_mapped)
     {
-        if(cache_item[current_line][62] == false) //hit is false
+        if(cache_item[current_line]->test(p_hit) == false) //hit is false
         {
 #ifndef NDEBUG
             cout << "Read from Main Memory to Cache!" << endl;
 #endif // NDEBUG
 
-            for(i=63,j=60; i>(63ul-bit_tag); i--,j--) //设置标记
+            for(i=63,j=bit_tag-1; i>(63ul-bit_tag); i--,j--) //设置标记
             {
-                cache_item[current_line][j] = flags[i];
+                cache_item[current_line]->set(j,flags[i]);
                 assert(j>0);
             }
 
-            cache_item[current_line][62] = true; //设置hit位为true
+            cache_item[current_line]->set(p_hit, true); //设置hit位为true
         }
         else
         {
@@ -307,7 +320,7 @@ void GetRead(bitset<64> flags)
 
         for(temp=0; temp<i_num_line; temp++)
         {
-            if(cache_item[temp][62] == false) //find a space line
+            if(cache_item[temp]->test(p_hit) == false) //find a space line
             {
                 space = true;
                 break;
@@ -321,17 +334,20 @@ void GetRead(bitset<64> flags)
             cout << "Read from Main Memory to Cache!" << endl;
 #endif // NDEBUG
 
-            for(i=63,j=60; i>(63ul-bit_tag); i--,j--) //设置标记
+            for(i=63,j=bit_tag-1; i>(63ul-bit_tag); i--,j--) //设置标记
             {
-                cache_item[current_line][j] = flags[i];
+                cache_item[current_line]->set(j, flags[i]);
                 assert(j>0);
             }
 
-            cache_item[current_line][62] = true; //设置hit位为true.
+            cache_item[current_line]->set(p_hit, true); //设置hit位为true.
 
             if(t_replace == LRU)
             {
                 LruUnhitSpace();
+            }
+            else if(t_replace == PseudoLRU){
+                PseudoLruUnhitSpace();
             }
         }
         else
@@ -345,7 +361,7 @@ void GetRead(bitset<64> flags)
 
         for(temp=(current_set*i_cache_set); temp<((current_set+1)*i_cache_set); temp++)
         {
-            if(cache_item[temp][62] == false) //find a space line
+            if(cache_item[temp]->test(p_hit) == false) //find a space line
             {
                 space = true;
                 break;
@@ -361,15 +377,18 @@ void GetRead(bitset<64> flags)
 
             for(i=63,j=60; i>(63ul-bit_tag); i--,j--) //设置标记
             {
-                cache_item[current_line][j] = flags[i];
+                cache_item[current_line]->set(j, flags[i]);
                 assert(j>0);
             }
 
-            cache_item[current_line][62] = true; //设置hit位为true.
+            cache_item[current_line]->set(p_hit, true); //设置hit位为true.
 
             if(t_replace == LRU)
             {
                 LruUnhitSpace();
+            }
+            else if(t_replace == PseudoLRU){
+                PseudoLruUnhitSpace();
             }
         }
         else
@@ -394,6 +413,9 @@ void GetReplace(bitset<64> flags)
         {
             LruUnhitUnspace();
         }
+        else if(t_replace == PseudoLRU){
+            PseudoLruUnhitUnspace();
+        }
     }
     else if(t_assoc == set_associative) // 从本组中任选一行，进行替换
     {
@@ -406,9 +428,12 @@ void GetReplace(bitset<64> flags)
         {
             LruUnhitUnspace();
         }
+        else if(t_replace == PseudoLRU){
+            PseudoLruUnhitUnspace();
+        }
     }
 
-    if(cache_item[current_line][61] == true) //dirty位必须为1才写入
+    if(cache_item[current_line]->test(p_dirty) == true) //dirty位必须为1才写入
     {
         GetWrite(); //写入内存
     }
@@ -417,13 +442,13 @@ void GetReplace(bitset<64> flags)
     cout << "Read from Main Memory to Cache: " << endl;
 #endif // NDEBUG
 
-    for(i=63,j=60; i>(63ul-bit_tag); i--,j--) //设置标记
+    for(i=63,j=bit_tag-1; i>(63ul-bit_tag); i--,j--) //设置标记
     {
-        cache_item[current_line][j] = flags[i];
+        cache_item[current_line]->set(j, flags[i]);
         assert(j>0);
     }
 
-    cache_item[current_line][62] = true; //设置hit位为true
+    cache_item[current_line]->set(p_hit, true); //设置hit位为true
 }
 
 void GetWrite() //写入内存
@@ -431,8 +456,8 @@ void GetWrite() //写入内存
 #ifndef NDEBUG
     cout << "Writing to the Main Memory!" <<endl;
 #endif
-    cache_item[current_line][61] = false; //设置dirty为false
-    cache_item[current_line][62] = false; //设置hit为false
+    cache_item[current_line]->set(p_dirty, false); //设置dirty为false
+    cache_item[current_line]->set(p_hit, false); //设置hit为false
 }
 
 void GetHitRate()

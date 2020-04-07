@@ -53,6 +53,11 @@ void CalcInfo()
     }
 
     bit_tag = 64ul - bit_block - bit_line - bit_set;
+    p_valid = bit_tag;
+    p_hit = bit_tag + 1;
+    p_dirty = bit_tag + 2;
+    bit_data = bit_tag + 3;
+    
     assert(bit_tag <= 61); //64-valid-hit-dirty
     cout << "i_cache_line_size: " << i_cache_line_size << "B" << endl; // 显示块大小
     cout << "i_cache_size: " << i_cache_size << "KB" << endl; // 显示cache数据区总容量

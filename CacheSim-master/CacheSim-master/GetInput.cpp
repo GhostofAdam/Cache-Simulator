@@ -91,6 +91,7 @@ void getReplacePolicy()
 	puts("\n\t LRU(Least Recently Used):input 2");
 	puts("\n\t LFU(Least Frequently Used):input 3");
 	puts("\n\t Random:input 4");
+	puts("\n\t PseudoLRU:input 5");
 	cin >> temp;
 	if (cin.fail())
 	{
@@ -111,6 +112,8 @@ void getReplacePolicy()
 	case 4:
 		t_replace = Random;
 		break;
+	case 5:
+		t_replace = PseudoLRU;
 	default:
 		getReplacePolicy();
 	}

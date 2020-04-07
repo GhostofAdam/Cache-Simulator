@@ -18,6 +18,8 @@
 
 #include <iostream>
 #include <fstream>
+#include "_bitset.h"
+#include "LRUStack.h"
 #include <bitset>
 
 #include <cstdio>
@@ -42,7 +44,7 @@
 enum associativity_way {direct_mapped=1,set_associative,full_associative};
 
 // 替换策略：none（直接替换），FIFO（先进先出算法），LRU（最近最少用算法），LFU（最不经常用算法），Random（随机替换算法）
-enum replacement_way {none,FIFO=1,LRU,LFU,Random};
+enum replacement_way {none,FIFO=1,LRU,LFU,Random,PseudoLRU};
 
 // 写策略：write_through（全写法），write_back（回写法）
 enum write_way {write_through=1,write_back};
@@ -88,8 +90,16 @@ extern float f_load_rate; //Cache hit rate for loads
 extern float f_store_rate; //Cache hit rate for stores
 /******************************************/
 
-extern std::bitset<32> cache_item[MAX_CACHE_LINE]; // [31]:valid,[30]:hit,[29]:dirty,[28]-[0]:data
-extern unsigned long int LRU_priority[MAX_CACHE_LINE]; //For LRU policy's priority
+extern unsigned short int bit_data;
+extern unsigned short int p_valid;
+extern unsigned short int p_hit;
+extern unsigned short int p_dirty;
+
+
+extern _bitset** cache_item; // [31]:valid,[30]:hit,[29]:dirty,[28]-[0]:data
+extern LRUStack** LRU_stack; //For LRU policy's priority
+extern _bitset** pseudo_LRU_flag;
+
 extern unsigned long int current_line; // The line num which is processing
 extern unsigned long int current_set; // The set num which is processing
 extern unsigned long int i,j; //For loop
@@ -113,3 +123,8 @@ void PrintOutput(void);
 void LruHitProcess();
 void LruUnhitSpace();
 void LruUnhitUnspace();
+
+void PseudoLruHitProcess();
+void PseudoLruUnhitSpace();
+void PseudoLruUnhitUnspace();
+
