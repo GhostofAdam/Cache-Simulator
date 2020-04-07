@@ -19,7 +19,6 @@
 #include <iostream>
 #include <fstream>
 #include "_bitset.h"
-#include "LRUStack.h"
 #include <bitset>
 
 #include <cstdio>
@@ -48,12 +47,29 @@ enum replacement_way {none,FIFO=1,LRU,LFU,Random,PseudoLRU};
 
 // 写策略：write_through（全写法），write_back（回写法）
 enum write_way {write_through=1,write_back};
+
+// 写是否分配
+enum write_dis {write_with_distribution=1,write_without_distribution};
 #endif // STRUCT_TYPE
+ 
+class LRUStack{
+    private:
+        _bitset* stack;
+        size_t block_size;
+        size_t n;
+    public:
+        LRUStack(size_t _n, size_t _block_size);
+        ~LRUStack();
+        unsigned long int  push(unsigned long int );
+        bool pop(unsigned long int);
+
+};
 
 
 typedef enum associativity_way ASSOC;
 typedef enum replacement_way REPLACE;
 typedef enum write_way WRITE;
+typedef enum write_dis DIS;
 
 /******************************************/
 extern unsigned int long i_cache_size; //cache size
@@ -66,6 +82,7 @@ extern unsigned int long i_num_set; //How many sets of the cache.
 extern ASSOC t_assoc; //associativity method
 extern REPLACE t_replace; //replacement policy
 extern WRITE t_write; //write policy
+extern DIS t_write_dis;
 /******************************************/
 
 /******************************************/
@@ -106,11 +123,11 @@ extern unsigned long int i,j; //For loop
 extern unsigned long int temp; //A temp varibale
 
 
-bool GetHitNum(char *address);
+bool GetHitNum(char *address,std::ofstream& f);
 void GetHitRate(void);
-bool IsHit(std::bitset<32> flags);
-void GetReplace(std::bitset<32> flags);
-void GetRead(std::bitset<32> flags);
+bool IsHit(std::bitset<64> flags);
+void GetReplace(std::bitset<64> flags);
+void GetRead(std::bitset<64> flags);
 void GetWrite();
 
 void InitVariables(void);
@@ -119,6 +136,7 @@ void CalcInfo(void);
 void CreateCache(void);
 void FileTest(void);
 void PrintOutput(void);
+void DestroyCache(void);
 
 void LruHitProcess();
 void LruUnhitSpace();

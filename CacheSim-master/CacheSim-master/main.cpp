@@ -12,6 +12,7 @@ int main()
 		CreateCache();
 		FileTest();
 		PrintOutput(); // output the result
+		DestroyCache();
 		std::cout << "Continue/Exit(C/E)" << std::endl;
 		std::cin >> ch;
 	} while ((ch != 'e') && (ch != 'E'));

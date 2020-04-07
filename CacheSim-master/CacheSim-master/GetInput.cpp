@@ -114,6 +114,7 @@ void getReplacePolicy()
 		break;
 	case 5:
 		t_replace = PseudoLRU;
+		break;
 	default:
 		getReplacePolicy();
 	}
@@ -138,6 +139,27 @@ void getWritePolicy()
 		break;
 	case 2:
 		t_write = write_back;
+		break;
+	default:
+		getWritePolicy();
+	}
+
+	puts("\nInput write policy:");
+	puts("\n\t Write with distribution:input 1");
+	puts("\n\t Write without distribution:input 2");
+	cin >> temp;
+	if (cin.fail())
+	{
+		cin.clear();
+		cin.sync();
+	}
+	switch (temp)
+	{
+	case 1:
+		t_write_dis = write_with_distribution;
+		break;
+	case 2:
+		t_write_dis = write_without_distribution;
 		break;
 	default:
 		getWritePolicy();

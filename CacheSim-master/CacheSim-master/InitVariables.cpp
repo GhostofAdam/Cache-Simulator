@@ -2,16 +2,6 @@
 
 void InitVariables(void)
 {
-    for(i=0; i<i_num_line; i++)
-    {
-        cache_item[i]->clear(); // [31]:valid,[30]:hit,[29]:dirty,[28]-[0]:data
-
-        if(t_replace == LRU)
-        {
-            LRU_priority[i] = 0; //For LRU policy's priority
-        }
-    }
-
     i_cache_size = 64; //cache size
     i_cache_line_size = 32; //cacheline size
 #ifdef SetAssociative_Random_WriteBack

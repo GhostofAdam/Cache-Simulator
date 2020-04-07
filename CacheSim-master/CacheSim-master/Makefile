@@ -2,7 +2,7 @@ CC := g++
 RM := rm -f
 LIBS =
 TARGET = main
-OBJS = main.o base.o CalcInfo.o CreateCache.o FileTest.o GetInput.o InitVariables.o LRU.o PrintOutput.o
+OBJS = main.o base.o CalcInfo.o CreateCache.o FileTest.o GetInput.o InitVariables.o LRU.o PrintOutput.o PseudoLRU.o _bitset.o LRUStack.o DestroyCache.o
 
 all: $(TARGET)
 
@@ -36,7 +36,7 @@ InitVariables.o: base.h
 LRU.o: base.h
 	$(CC) -c LRU.cpp -Wall
 
-PseudoLRU.o: PseudoLRU.h
+PseudoLRU.o: base.h
 	$(CC) -c PseudoLRU.cpp -Wall
 
 PrintOutput.o: base.h
@@ -45,6 +45,9 @@ PrintOutput.o: base.h
 _bitset.o: _bitset.h
 	$(CC) -c _bitset.cpp -Wall
 
-LRUStack.o: LRUStack.h _bitset.h
+LRUStack.o: _bitset.h
 	$(CC) -c LRUStack.cpp -Wall
+
+DestroyCache.o: base.h
+	$(CC) -c DestroyCache.cpp -Wall
 

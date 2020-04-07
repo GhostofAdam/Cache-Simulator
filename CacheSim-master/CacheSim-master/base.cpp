@@ -19,6 +19,7 @@ unsigned int long i_num_set = 0; //How many sets of the cache.
 ASSOC t_assoc = direct_mapped; //associativity method,default direct_mapped
 REPLACE t_replace = none; //replacement policy,default Random
 WRITE t_write = write_back; //write policy,default write_back
+DIS t_write_dis = write_with_distribution; // wirte distribution
 /******************************************/
 
 /******************************************/
@@ -27,6 +28,10 @@ short unsigned int bit_line = 0; //How many bits of the line.
 short unsigned int bit_tag = 0; //How many bits of the tag.
 short unsigned int bit_set = 0; //How many bits of the set.
 /******************************************/
+unsigned short int bit_data;
+unsigned short int p_valid;
+unsigned short int p_hit;
+unsigned short int p_dirty;
 
 /******************************************/
 unsigned long int i_num_access = 0; //Number of cache access
@@ -59,7 +64,7 @@ unsigned long int temp = 0; //A temp varibale
 
 using namespace std;
 
-bool GetHitNum(char *address)
+bool GetHitNum(char *address,ofstream& file)
 {
     bool is_store = false;
     bool is_load = false;
@@ -93,7 +98,12 @@ bool GetHitNum(char *address)
     cout << flags << endl;
 #endif // NDEBUG
     hit = IsHit(flags);
-
+    if(hit){
+        file<<"Hit"<<endl;
+    }
+    else{
+        file<<"Miss"<<endl;
+    }
     if(hit && is_load) // 命中，读操作
     {
         i_num_access++;
@@ -106,6 +116,7 @@ bool GetHitNum(char *address)
         cout << "Read from Cache!" << endl;
 #endif // NDEBUG
 
+        
         if(t_replace == LRU)
         {
             LruHitProcess();
@@ -148,13 +159,13 @@ bool GetHitNum(char *address)
         cout << "Read from Cache!" << endl;
 #endif // NDEBUG
 
-        if(t_replace == LRU)
-        {
-            LruUnhitSpace();
-        }
-        else if(t_replace == PseudoLRU){
-            PseudoLruUnhitSpace();
-        }
+        // if(t_replace == LRU)
+        // {
+        //     LruUnhitSpace();
+        // }
+        // else if(t_replace == PseudoLRU){
+        //     PseudoLruUnhitSpace();
+        // }
     }
     else if((!hit) && is_store) // 没命中，写操作
     {
@@ -170,13 +181,13 @@ bool GetHitNum(char *address)
 #endif // NDEBUG
         cache_item[current_line]->set(p_dirty,true); //设置dirty为true
 
-        if(t_replace == LRU)
-        {
-            LruUnhitSpace();
-        }
-        else if(t_replace == PseudoLRU){
-            PseudoLruUnhitSpace();
-        }
+        // if(t_replace == LRU)
+        // {
+        //     LruUnhitSpace();
+        // }
+        // else if(t_replace == PseudoLRU){
+        //     PseudoLruUnhitSpace();
+        // }
     }
     else if(is_space)
     {
@@ -304,7 +315,7 @@ void GetRead(bitset<64> flags)
             for(i=63,j=bit_tag-1; i>(63ul-bit_tag); i--,j--) //设置标记
             {
                 cache_item[current_line]->set(j,flags[i]);
-                assert(j>0);
+                assert(j>=0);
             }
 
             cache_item[current_line]->set(p_hit, true); //设置hit位为true
@@ -337,7 +348,7 @@ void GetRead(bitset<64> flags)
             for(i=63,j=bit_tag-1; i>(63ul-bit_tag); i--,j--) //设置标记
             {
                 cache_item[current_line]->set(j, flags[i]);
-                assert(j>0);
+                assert(j>=0);
             }
 
             cache_item[current_line]->set(p_hit, true); //设置hit位为true.
@@ -375,10 +386,10 @@ void GetRead(bitset<64> flags)
             cout << "Read from Main Memory to Cache!" << endl;
 #endif // NDEBUG
 
-            for(i=63,j=60; i>(63ul-bit_tag); i--,j--) //设置标记
+            for(i=63,j=bit_tag-1; i>(63ul-bit_tag); i--,j--) //设置标记
             {
                 cache_item[current_line]->set(j, flags[i]);
-                assert(j>0);
+                assert(j>=0);
             }
 
             cache_item[current_line]->set(p_hit, true); //设置hit位为true.
@@ -445,7 +456,7 @@ void GetReplace(bitset<64> flags)
     for(i=63,j=bit_tag-1; i>(63ul-bit_tag); i--,j--) //设置标记
     {
         cache_item[current_line]->set(j, flags[i]);
-        assert(j>0);
+        assert(j>=0);
     }
 
     cache_item[current_line]->set(p_hit, true); //设置hit位为true

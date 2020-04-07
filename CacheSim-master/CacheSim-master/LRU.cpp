@@ -6,13 +6,18 @@ void LruHitProcess() // if the replacement policy is LRU,and hit
 {
     if(t_assoc == full_associative)
     {   
-        LRU_stack[0]->pop(current_line);
-        LRU_stack[0]->push(current_line);
+        if(!LRU_stack[0]->pop(current_line)){
+            cout<<"pop wrong"<<endl;
+            exit(0);
+        }
     }
     else if(t_assoc == set_associative)
-    {
-        LRU_stack[current_set]->pop(current_line);
-        LRU_stack[current_set]->push(current_line);
+    {   
+        
+        if(!LRU_stack[current_set]->pop(current_line)){
+            cout<<"pop wrong"<<endl;
+            exit(0);
+        }
     }
 }
 
