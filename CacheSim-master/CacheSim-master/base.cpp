@@ -42,13 +42,14 @@ unsigned long int i_num_space = 0; //Number of space line
 unsigned long int i_num_hit = 0; //Number of cache hit
 unsigned long int i_num_load_hit = 0; //Number of load hit
 unsigned long int i_num_store_hit = 0; //Number of store hit
+unsigned long int i_num_store_mem = 0;
 
 float f_ave_rate = 0.0; //Average cache hit rate
 float f_load_rate = 0.0; //Cache hit rate for loads
 float f_store_rate = 0.0; //Cache hit rate for stores
 /******************************************/
 
-_bitset** cache_item; // [63]:valid,[62]:hit,[61]:dirty,[60]-[0]:data
+_bitset** cache_item; // 
 LRUStack** LRU_stack; //For LRU policy's priority
 _bitset** pseudo_LRU_flag;//For Preudo LRU
 unsigned long int current_line = 0; // The line num which is processing
@@ -70,14 +71,14 @@ bool GetHitNum(char *address,ofstream& file)
     bool is_load = false;
     bool is_space = false;
     bool hit = false;
-
+    //cout<< *address<<endl;
     switch(address[0])
     {
-    case 's':
+    case 'w':
         is_store = true;
         break;
 
-    case 'l':
+    case 'r':
         is_load = true;
         break;
 
@@ -95,15 +96,17 @@ bool GetHitNum(char *address,ofstream& file)
     temp = strtoul(address+2,NULL,16);
     bitset<64> flags(temp); // flags if the binary of address
 #ifndef NDEBUG
-    cout << flags << endl;
+    // cout << flags << endl;
 #endif // NDEBUG
     hit = IsHit(flags);
+#ifndef NLOG
     if(hit){
         file<<"Hit"<<endl;
     }
     else{
         file<<"Miss"<<endl;
     }
+#endif
     if(hit && is_load) // 命中，读操作
     {
         i_num_access++;
@@ -145,6 +148,9 @@ bool GetHitNum(char *address,ofstream& file)
          else if(t_replace == PseudoLRU){
             PseudoLruHitProcess();
         }
+        if(t_write==write_through){
+            i_num_store_mem++;
+        }
     }
     else if((!hit) && is_load) // 没命中，读操作
     {
@@ -175,7 +181,8 @@ bool GetHitNum(char *address,ofstream& file)
         cout << "Storing" << endl;
         cout << "Not Hit" << endl;
 #endif // NDEBUG
-        GetRead(flags); // read data from memory
+        if(t_write_dis == write_with_distribution)
+            GetRead(flags); // read data from memory
 #ifndef NDEBUG
         cout << "Write to Cache" << endl;
 #endif // NDEBUG
@@ -188,6 +195,9 @@ bool GetHitNum(char *address,ofstream& file)
         // else if(t_replace == PseudoLRU){
         //     PseudoLruUnhitSpace();
         // }
+        if(t_write==write_through){
+            i_num_store_mem++;
+        }
     }
     else if(is_space)
     {
@@ -202,7 +212,7 @@ bool GetHitNum(char *address,ofstream& file)
     if(i_num_space != 0)
     {
 #ifndef NDEBUG
-        cout << "There have " << i_num_space << " space lines" << endl;
+        // cout << "There have " << i_num_space << " space lines" << endl;
 #endif // NDEBUG
     }
 
@@ -370,7 +380,7 @@ void GetRead(bitset<64> flags)
     {
         bool space = false;
 
-        for(temp=(current_set*i_cache_set); temp<((current_set+1)*i_cache_set); temp++)
+        for(temp=(current_set*i_cache_set); temp<((+1)*i_cache_set); temp++)
         {
             if(cache_item[temp]->test(p_hit) == false) //find a space line
             {
@@ -469,6 +479,9 @@ void GetWrite() //写入内存
 #endif
     cache_item[current_line]->set(p_dirty, false); //设置dirty为false
     cache_item[current_line]->set(p_hit, false); //设置hit为false
+    if(t_write==write_back){
+        i_num_store_mem++;
+    }
 }
 
 void GetHitRate()

@@ -7,7 +7,7 @@
 *********************************************/
 
 #define NDEBUG // For NDEBUG pattern
-
+#define NLOG
 #define QUICK // For testing the program quickly
 
 //#define OUTPUT // For writing the information to the test.log
@@ -35,6 +35,7 @@
 #ifndef QUICK
 #define MAX_CACHE_LINE 268435456 // The max num of gcc array support 268435456(2^28)
 #endif
+
 
 
 #ifndef STRUCT_TYPE
@@ -97,6 +98,7 @@ extern unsigned long int i_num_access; //Number of cache access
 extern unsigned long int i_num_load; //Number of cache load
 extern unsigned long int i_num_store; //Number of cache store
 extern unsigned long int i_num_space; //Number of space line
+extern unsigned long int i_num_store_mem;
 
 extern unsigned long int i_num_hit; //Number of cache hit
 extern unsigned long int i_num_load_hit; //Number of load hit

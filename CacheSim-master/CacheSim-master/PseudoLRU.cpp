@@ -4,6 +4,7 @@ using namespace std;
 
 void PseudoLruHitProcess() // if the replacement policy is LRU,and hit
 {   
+    
     switch(current_line%8){
         case 0:
             pseudo_LRU_flag[current_set]->set(0,true);

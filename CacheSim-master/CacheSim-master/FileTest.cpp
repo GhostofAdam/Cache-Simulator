@@ -7,7 +7,7 @@ void FileTest(void)
     char filepath[100];
     ifstream in_file;
     ofstream out_file;
-    char address[13];
+    char address[21];
     cout << "\nPlease input the path and name that you want to test!" << endl;
     cout << "\n\t C:\\temp\\myfile.trace" << endl;
     cout << "\n\t myfile.trace" << endl;
@@ -24,12 +24,13 @@ void FileTest(void)
 
     while(!in_file.eof())
     {
-        in_file.getline(address,13);
+        in_file.getline(address,21);
         bool __attribute__((unused)) is_success = GetHitNum(address, out_file); //in case of the warning of "Wunused-but-set-variable"
         assert(is_success);
 
     }
 
     in_file.close();
+    out_file.close();
     GetHitRate();
 }

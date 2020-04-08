@@ -15,9 +15,10 @@ unsigned long int LRUStack:: push(unsigned long int index){
             cout <<"push "<< index << endl;
 #endif // NDEBUG
     
-    index %= block_size;
-    unsigned long int res = stack->read(0, block_size);
-    if(res == index){
+    index %= n;
+    unsigned long int temp = stack->read(0, block_size);
+    unsigned long int res = stack->read(block_size*(n-1), block_size);
+    if(temp == index){
         return res;
     }
     stack->leftShift(block_size);
@@ -32,6 +33,7 @@ unsigned long int LRUStack:: push(unsigned long int index){
         
     // }
     // cout<<endl;
+    
     return res;
 }
 bool LRUStack:: pop(unsigned long int index){
@@ -39,8 +41,8 @@ bool LRUStack:: pop(unsigned long int index){
 #ifndef NDEBUG
             cout <<"pop "<< index << endl;
 #endif // NDEBUG
-    index %=block_size;
-    // cout<<"stack: ";
+    index %= n;
+    // cout<<"before stack: ";
     // for(i=0;i<n;++i){
     //     cout<<stack->read(i*block_size, block_size)<<" ";
         
@@ -72,5 +74,11 @@ bool LRUStack:: pop(unsigned long int index){
             index>>=1;
         }
     }
+    // cout<<"after stack: ";
+    // for(i=0;i<n;++i){
+    //     cout<<stack->read(i*block_size, block_size)<<" ";
+        
+    // }
+    // cout<<endl;
     return finded;
 }
