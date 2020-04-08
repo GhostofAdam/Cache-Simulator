@@ -380,7 +380,7 @@ void GetRead(bitset<64> flags)
     {
         bool space = false;
 
-        for(temp=(current_set*i_cache_set); temp<((+1)*i_cache_set); temp++)
+        for(temp=(current_set*i_cache_set); temp<((current_set+1)*i_cache_set); temp++)
         {
             if(cache_item[temp]->test(p_hit) == false) //find a space line
             {

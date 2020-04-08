@@ -3,9 +3,11 @@
 int main()
 {
 	char ch = '\0';
+	std::ifstream in("input");
+	std::streambuf *cinbuf = std::cin.rdbuf();
+	std::cin.rdbuf(in.rdbuf());
 
-	do
-	{
+	
 		InitVariables();
 		GetInput(); // get input information
 		CalcInfo();
@@ -15,7 +17,6 @@ int main()
 		//DestroyCache();
 		std::cout << "Continue/Exit(C/E)" << std::endl;
 		std::cin >> ch;
-	} while ((ch != 'e') && (ch != 'E'));
 
 	return 0;
 }

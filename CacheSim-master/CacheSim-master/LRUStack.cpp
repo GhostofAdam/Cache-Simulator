@@ -12,7 +12,7 @@ LRUStack::~LRUStack(){
 unsigned long int LRUStack:: push(unsigned long int index){
     
 #ifndef NDEBUG
-            cout <<"push "<< index << endl;
+            cout <<"push "<< current_set<< " "<< index << endl;
 #endif // NDEBUG
     
     index %= n;
@@ -39,7 +39,7 @@ unsigned long int LRUStack:: push(unsigned long int index){
 bool LRUStack:: pop(unsigned long int index){
     
 #ifndef NDEBUG
-            cout <<"pop "<< index << endl;
+            cout <<"pop "<<current_set<< " "<< index << endl;
 #endif // NDEBUG
     index %= n;
     // cout<<"before stack: ";
